@@ -67,7 +67,7 @@ class PPO(nn.Module):
             advantage_lst = []
             advantage = 0.0
             for delta_t in delta[::-1]:
-                advantage = gamma * lmbda * advantage + delta_t[0]
+                advantage = gamma * lmbda * advantage + delta_t[0] # NOTE: advantage is A_GAE, delta_t is A_n step returns
                 advantage_lst.append([advantage])
             advantage_lst.reverse()
             advantage = torch.tensor(advantage_lst, dtype=torch.float)
@@ -78,7 +78,7 @@ class PPO(nn.Module):
 
             surr1 = ratio * advantage
             surr2 = torch.clamp(ratio, 1-eps_clip, 1+eps_clip) * advantage
-            loss = -torch.min(surr1, surr2) + F.smooth_l1_loss(self.v(s) , td_target.detach())
+            loss = -torch.min(surr1, surr2) + F.smooth_l1_loss(self.v(s) , td_target.detach()) # NOTE: bootstrapped estimate
 
             self.optimizer.zero_grad()
             loss.mean().backward()
